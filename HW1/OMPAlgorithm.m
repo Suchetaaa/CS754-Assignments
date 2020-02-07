@@ -2,7 +2,7 @@ function basis_coeffs_vector = OMPAlgorithm(support_matrix, measurements, epsilo
 % OMPALGORITHM implentation of OMP algorithm
 %
 % Inputs:
-%    support matrix: matrix containing vectors whose sparse linear
+%    support_matrix: matrix containing vectors whose sparse linear
 %    combination in measurements (m x n)
 %    measurements:  sparse linear combination of column of support matrix
 %    (assumed) (m x 1)

@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>main</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-01-31"><meta name="DC.source" content="main.m"><style type="text/css">
+      --><title>main</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-07"><meta name="DC.source" content="main.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,72 +66,119 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">CS 754 : Advanced Image Processing - Assignment 1</a></li><li><a href="#2">2 (a) Loading 'cars' video</a></li><li><a href="#3">2 (b) Generating coded snapshot</a></li><li><a href="#4">2 (c) What are A, x, and b?</a></li><li><a href="#5">2 (d) Setting up Ax = b equataion</a></li><li><a href="#6">Carefully check documentation of dctmtx</a></li></ul></div><h2 id="1">CS 754 : Advanced Image Processing - Assignment 1</h2><p>Karan Taneja - 15D070022</p><p>Sucheta Ravikanti- 160040100</p><pre class="codeinput">clear;
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">CS 754 : Advanced Image Processing - Assignment 1</a></li><li><a href="#2">2 (a) Loading 'cars' video</a></li><li><a href="#3">2 (b) Generating coded snapshot</a></li><li><a href="#4">2 (c) What are A, x, and b?</a></li><li><a href="#5">2 (d) (e) patch-wise reconstruction from coded snapshot and code pattern</a></li><li><a href="#6">2 (d) (e) relative mean squared error (rmse)</a></li><li><a href="#7">2 (d) (e) plots</a></li><li><a href="#8">2 (f) With T = 5</a></li><li><a href="#9">2 (f) With T = 7</a></li><li><a href="#10">2 (h) With Flame Video</a></li><li><a href="#11">2 (h) Plots</a></li></ul></div><h2 id="1">CS 754 : Advanced Image Processing - Assignment 1</h2><p>Karan Taneja - 15D070022</p><p>Sucheta Ravikanti- 1600401001</p><pre class="codeinput">clear;
 clc;
 addpath(genpath(<span class="string">'MMread'</span>));
-</pre><pre class="codeoutput error">Error using dbstatus
-Error: File: C:\Users\Karan\Dropbox\Semester 10\CS754 Advanced Image Processing\HW1\main.m Line: 64 Column: 11
-Invalid expression. Check for missing or extra characters.
-</pre><h2 id="2">2 (a) Loading 'cars' video</h2><pre class="codeinput"><span class="comment">% A = mmread('./cars.avi');</span>
-time = 3; <span class="comment">% number of frames</span>
-[complete_video, ~] = mmread(<span class="string">'./cars.avi'</span>, 1:time, [], false, true);
-[height, width, ~] = size(complete_video.frames(1).cdata);
-
-cars_video = zeros(height, width, time);
-<span class="keyword">for</span> time_index = 1:time
-    curr_frame = complete_video.frames(time_index).cdata;
-    curr_frame = mean(curr_frame, 3);
-    cars_video(:,:,time_index) = curr_frame;
-<span class="keyword">end</span>
-
-<span class="comment">% clipping to a 120 x 240 part of video</span>
-cars_video = cars_video(end-120+1:end,end-240+1:end,:);
-[height, width, ~] = size(cars_video);
-</pre><h2 id="3">2 (b) Generating coded snapshot</h2><pre class="codeinput"><span class="comment">% random code pattern</span>
-prob = 0.5;
-code_pattern = rand(size(cars_video)) &lt; prob;
-code_pattern = code_pattern;
-
-<span class="comment">% coded snapshot before adding noise</span>
-clean_coded_snapshot = sum(cars_video .* code_pattern, 3);
-
-<span class="comment">% adding noise to coded snapshot</span>
-noisy_coded_snapshot = clean_coded_snapshot + <span class="keyword">...</span>
-    normrnd(0, 2, size(clean_coded_snapshot));
+</pre><h2 id="2">2 (a) Loading 'cars' video</h2><pre class="codeinput">time_frames = 3; height = 120; width = 240;
+cars_video = load_video(<span class="string">'./cars.avi'</span>, time_frames, height, width);
+cars_video = cars_video./255;
+</pre><h2 id="3">2 (b) Generating coded snapshot</h2><pre class="codeinput">noise = 2/255;
+[noisy_coded_snapshot, code_pattern] = create_noisy_coded_snapshot( <span class="keyword">...</span>
+    cars_video,noise);
 
 <span class="comment">% showing coded snapshot</span>
 imshow(noisy_coded_snapshot/max(noisy_coded_snapshot, [], <span class="string">'all'</span>));
 title(<span class="string">"Noisy coded snapshot"</span>)
 hold <span class="string">off</span>
-</pre><h2 id="4">2 (c) What are A, x, and b?</h2><pre class="codeinput"><span class="comment">% x is the unknown original image of size H.W.T.</span>
+</pre><img vspace="5" hspace="5" src="main_01.png" alt=""> <h2 id="4">2 (c) What are A, x, and b?</h2><pre class="codeinput"><span class="comment">% x is the unknown original image of size H.W.T.</span>
 <span class="comment">% b is the vector of measurements of size H.W (linearized)</span>
 <span class="comment">% A is the measurement matrix of size (H.W) x (H.W.T)</span>
-</pre><h2 id="5">2 (d) Setting up Ax = b equataion</h2><pre class="codeinput">patch_size = 8; patch_stride = 4;
-
-<span class="comment">% x is the unknown patch in image of size (patch_size.patch_size.T).</span>
+</pre><h2 id="5">2 (d) (e) patch-wise reconstruction from coded snapshot and code pattern</h2><pre class="codeinput"><span class="comment">% x is the unknown patch in image of size (patch_size.patch_size.T).</span>
 <span class="comment">% b is the vector of measurements of size patch_size.patch_size</span>
 <span class="comment">% (linearized)</span>
 <span class="comment">% A is the measurement matrix of size (patch_size.patch_size) x ...</span>
 <span class="comment">%                                     (patch_size.patch_size.T)</span>
 
-<span class="keyword">for</span> patch
-b = noisy_coded_snapshot(:);
-
-A = zeros(height*width, height*width*time, <span class="string">'like'</span>, code_pattern);
-<span class="keyword">for</span> height_index = 1:height
-    <span class="keyword">for</span> width_index = 1:width
-        curr_code_pattern = zeros(size(cars_video));
-        curr_code_pattern(height, width, :) = <span class="keyword">...</span>
-            code_pattern(height, width, :);
-        A((height_index-1)*height+width_index,:) = curr_code_pattern(:);
-    <span class="keyword">end</span>
+patch_size = 8; <span class="comment">% patch_stride = patch_size/2;</span>
+epsilon = 1e-1;
+reconstruction = reconstruct_from_snapshot(noisy_coded_snapshot, <span class="keyword">...</span>
+    code_pattern, patch_size, epsilon);
+</pre><h2 id="6">2 (d) (e) relative mean squared error (rmse)</h2><pre class="codeinput">mse = mean((cars_video - reconstruction).^2, <span class="string">'all'</span>);
+rmse = mse / mean(cars_video .^ 2, <span class="string">'all'</span>);
+fprintf(<span class="string">"rmse = %0.4f \n"</span>, rmse);
+</pre><pre class="codeoutput">rmse = 0.0212 
+</pre><h2 id="7">2 (d) (e) plots</h2><pre class="codeinput"><span class="keyword">for</span> t = 1:time_frames
+    figure
+    imshow(reconstruction(:,:,1)/max(reconstruction, [], <span class="string">'all'</span>))
+    title(sprintf(<span class="string">"Time step = %d"</span>, t));
 <span class="keyword">end</span>
-</pre><h2 id="6">Carefully check documentation of dctmtx</h2><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+</pre><img vspace="5" hspace="5" src="main_02.png" alt=""> <img vspace="5" hspace="5" src="main_03.png" alt=""> <img vspace="5" hspace="5" src="main_04.png" alt=""> <h2 id="8">2 (f) With T = 5</h2><pre class="codeinput">time_frames = 5; height= 120; width = 240;
+cars_video = load_video(<span class="string">'./cars.avi'</span>, time_frames, height, width);
+cars_video = cars_video./255;
+
+noise = 2/255;
+[noisy_coded_snapshot, code_pattern] = create_noisy_coded_snapshot( <span class="keyword">...</span>
+    cars_video,noise);
+
+<span class="comment">% showing coded snapshot</span>
+imshow(noisy_coded_snapshot/max(noisy_coded_snapshot, [], <span class="string">'all'</span>));
+title(<span class="string">"Noisy coded snapshot"</span>)
+hold <span class="string">off</span>
+
+patch_size = 8; <span class="comment">% patch_stride = patch_size/2;</span>
+epsilon = 1e-1;
+reconstruction = reconstruct_from_snapshot(noisy_coded_snapshot, <span class="keyword">...</span>
+    code_pattern, patch_size, epsilon);
+
+mse = mean((cars_video - reconstruction).^2, <span class="string">'all'</span>);
+rmse = mse / mean(cars_video .^ 2, <span class="string">'all'</span>);
+fprintf(<span class="string">"rmse = %0.4f \n"</span>, rmse);
+</pre><pre class="codeoutput">rmse = 0.0407 
+</pre><img vspace="5" hspace="5" src="main_05.png" alt=""> <h2 id="9">2 (f) With T = 7</h2><pre class="codeinput">time_frames = 7; height= 120; width = 240;
+cars_video = load_video(<span class="string">'./cars.avi'</span>, time_frames, height, width);
+cars_video = cars_video./255;
+
+noise = 2/255;
+[noisy_coded_snapshot, code_pattern] = create_noisy_coded_snapshot( <span class="keyword">...</span>
+    cars_video,noise);
+
+<span class="comment">% showing coded snapshot</span>
+imshow(noisy_coded_snapshot/max(noisy_coded_snapshot, [], <span class="string">'all'</span>));
+title(<span class="string">"Noisy coded snapshot"</span>)
+hold <span class="string">off</span>
+
+patch_size = 8; <span class="comment">% patch_stride = patch_size/2;</span>
+epsilon = 1e-1;
+reconstruction = reconstruct_from_snapshot(noisy_coded_snapshot, <span class="keyword">...</span>
+    code_pattern, patch_size, epsilon);
+
+mse = mean((cars_video - reconstruction).^2, <span class="string">'all'</span>);
+rmse = mse / mean(cars_video .^ 2, <span class="string">'all'</span>);
+fprintf(<span class="string">"rmse = %0.4f \n"</span>, rmse);
+</pre><pre class="codeoutput">rmse = 0.0846 
+</pre><img vspace="5" hspace="5" src="main_06.png" alt=""> <h2 id="10">2 (h) With Flame Video</h2><pre class="codeinput">time_frames = 5; height= 288; width = 352;
+cars_video = load_video(<span class="string">'./flame.avi'</span>, time_frames, height, width);
+cars_video = cars_video./255;
+
+noise = 2/255;
+[noisy_coded_snapshot, code_pattern] = create_noisy_coded_snapshot( <span class="keyword">...</span>
+    cars_video,noise);
+
+<span class="comment">% showing coded snapshot</span>
+imshow(noisy_coded_snapshot/max(noisy_coded_snapshot, [], <span class="string">'all'</span>));
+title(<span class="string">"Noisy coded snapshot"</span>)
+hold <span class="string">off</span>
+
+patch_size = 8; <span class="comment">% patch_stride = patch_size/2;</span>
+epsilon = 1e-1;
+reconstruction = reconstruct_from_snapshot(noisy_coded_snapshot, <span class="keyword">...</span>
+    code_pattern, patch_size, epsilon);
+
+mse = mean((cars_video - reconstruction).^2, <span class="string">'all'</span>);
+rmse = mse / mean(cars_video .^ 2, <span class="string">'all'</span>);
+fprintf(<span class="string">"rmse = %0.4f \n"</span>, rmse);
+</pre><pre class="codeoutput">rmse = 0.0053 
+</pre><img vspace="5" hspace="5" src="main_07.png" alt=""> <h2 id="11">2 (h) Plots</h2><pre class="codeinput"><span class="keyword">for</span> t = 1:time_frames
+    figure
+    imshow(reconstruction(:,:,1)/max(reconstruction, [], <span class="string">'all'</span>))
+    title(sprintf(<span class="string">"Time step = %d"</span>, t));
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="main_08.png" alt=""> <img vspace="5" hspace="5" src="main_09.png" alt=""> <img vspace="5" hspace="5" src="main_10.png" alt=""> <img vspace="5" hspace="5" src="main_11.png" alt=""> <img vspace="5" hspace="5" src="main_12.png" alt=""> <img vspace="5" hspace="5" src="main_13.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% CS 754 : Advanced Image Processing - Assignment 1
 % Karan Taneja - 15D070022
 %
-% Sucheta Ravikanti- 160040100
+% Sucheta Ravikanti- 1600401001
 %
 
 clear;
@@ -140,35 +187,15 @@ addpath(genpath('MMread'));
 
 %% 2 (a) Loading 'cars' video
 
-% A = mmread('./cars.avi');
-time = 3; % number of frames
-[complete_video, ~] = mmread('./cars.avi', 1:time, [], false, true);
-[height, width, ~] = size(complete_video.frames(1).cdata);
-
-cars_video = zeros(height, width, time);
-for time_index = 1:time
-    curr_frame = complete_video.frames(time_index).cdata;
-    curr_frame = mean(curr_frame, 3);
-    cars_video(:,:,time_index) = curr_frame;
-end
-
-% clipping to a 120 x 240 part of video
-cars_video = cars_video(end-120+1:end,end-240+1:end,:);
-[height, width, ~] = size(cars_video);
+time_frames = 3; height = 120; width = 240;
+cars_video = load_video('./cars.avi', time_frames, height, width);
+cars_video = cars_video./255;
 
 %% 2 (b) Generating coded snapshot
 
-% random code pattern 
-prob = 0.5;
-code_pattern = rand(size(cars_video)) < prob;
-code_pattern = code_pattern;
-
-% coded snapshot before adding noise
-clean_coded_snapshot = sum(cars_video .* code_pattern, 3);
-
-% adding noise to coded snapshot
-noisy_coded_snapshot = clean_coded_snapshot + ...
-    normrnd(0, 2, size(clean_coded_snapshot));
+noise = 2/255;
+[noisy_coded_snapshot, code_pattern] = create_noisy_coded_snapshot( ...
+    cars_video,noise);
 
 % showing coded snapshot
 imshow(noisy_coded_snapshot/max(noisy_coded_snapshot, [], 'all'));
@@ -181,9 +208,7 @@ hold off
 % b is the vector of measurements of size H.W (linearized)
 % A is the measurement matrix of size (H.W) x (H.W.T)
 
-%% 2 (d) Setting up Ax = b equataion
-
-patch_size = 8; patch_stride = 4;
+%% 2 (d) (e) patch-wise reconstruction from coded snapshot and code pattern
 
 % x is the unknown patch in image of size (patch_size.patch_size.T).
 % b is the vector of measurements of size patch_size.patch_size
@@ -191,20 +216,122 @@ patch_size = 8; patch_stride = 4;
 % A is the measurement matrix of size (patch_size.patch_size) x ...
 %                                     (patch_size.patch_size.T)
 
-for patch 
-b = noisy_coded_snapshot(:);
+patch_size = 8; % patch_stride = patch_size/2;
+epsilon = 1e-1;
+reconstruction = reconstruct_from_snapshot(noisy_coded_snapshot, ...
+    code_pattern, patch_size, epsilon);
 
-A = zeros(height*width, height*width*time, 'like', code_pattern);
-for height_index = 1:height
-    for width_index = 1:width
-        curr_code_pattern = zeros(size(cars_video));
-        curr_code_pattern(height, width, :) = ...
-            code_pattern(height, width, :);
-        A((height_index-1)*height+width_index,:) = curr_code_pattern(:);
-    end
+%% 2 (d) (e) relative mean squared error (rmse)
+mse = mean((cars_video - reconstruction).^2, 'all');
+rmse = mse / mean(cars_video .^ 2, 'all');
+fprintf("rmse = %0.4f \n", rmse);
+
+%% 2 (d) (e) plots
+for t = 1:time_frames
+    figure
+    imshow(reconstruction(:,:,1)/max(reconstruction, [], 'all'))
+    title(sprintf("Time step = %d", t));
 end
 
-%% Carefully check documentation of dctmtx
+%% 2 (f) With T = 5
+
+time_frames = 5; height= 120; width = 240;
+cars_video = load_video('./cars.avi', time_frames, height, width);
+cars_video = cars_video./255;
+
+noise = 2/255;
+[noisy_coded_snapshot, code_pattern] = create_noisy_coded_snapshot( ...
+    cars_video,noise);
+
+% showing coded snapshot
+imshow(noisy_coded_snapshot/max(noisy_coded_snapshot, [], 'all'));
+title("Noisy coded snapshot")
+hold off
+
+patch_size = 8; % patch_stride = patch_size/2;
+epsilon = 1e-1;
+reconstruction = reconstruct_from_snapshot(noisy_coded_snapshot, ...
+    code_pattern, patch_size, epsilon);
+
+mse = mean((cars_video - reconstruction).^2, 'all');
+rmse = mse / mean(cars_video .^ 2, 'all');
+fprintf("rmse = %0.4f \n", rmse);
+
+%% 2 (f) With T = 7
+
+time_frames = 7; height= 120; width = 240;
+cars_video = load_video('./cars.avi', time_frames, height, width);
+cars_video = cars_video./255;
+
+noise = 2/255;
+[noisy_coded_snapshot, code_pattern] = create_noisy_coded_snapshot( ...
+    cars_video,noise);
+
+% showing coded snapshot
+imshow(noisy_coded_snapshot/max(noisy_coded_snapshot, [], 'all'));
+title("Noisy coded snapshot")
+hold off
+
+patch_size = 8; % patch_stride = patch_size/2;
+epsilon = 1e-1;
+reconstruction = reconstruct_from_snapshot(noisy_coded_snapshot, ...
+    code_pattern, patch_size, epsilon);
+
+mse = mean((cars_video - reconstruction).^2, 'all');
+rmse = mse / mean(cars_video .^ 2, 'all');
+fprintf("rmse = %0.4f \n", rmse);
+
+%% 2 (h) With Flame Video
+
+time_frames = 5; height= 288; width = 352;
+cars_video = load_video('./flame.avi', time_frames, height, width);
+cars_video = cars_video./255;
+
+noise = 2/255;
+[noisy_coded_snapshot, code_pattern] = create_noisy_coded_snapshot( ...
+    cars_video,noise);
+
+% showing coded snapshot
+imshow(noisy_coded_snapshot/max(noisy_coded_snapshot, [], 'all'));
+title("Noisy coded snapshot")
+hold off
+
+patch_size = 8; % patch_stride = patch_size/2;
+epsilon = 1e-1;
+reconstruction = reconstruct_from_snapshot(noisy_coded_snapshot, ...
+    code_pattern, patch_size, epsilon);
+
+mse = mean((cars_video - reconstruction).^2, 'all');
+rmse = mse / mean(cars_video .^ 2, 'all');
+fprintf("rmse = %0.4f \n", rmse);
+
+%%  2 (h) Plots
+
+for t = 1:time_frames
+    figure
+    imshow(reconstruction(:,:,1)/max(reconstruction, [], 'all'))
+    title(sprintf("Time step = %d", t));
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
