@@ -1,0 +1,469 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>CS 754 : Advanced Image Processing - Assignment 1</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-20"><meta name="DC.source" content="main2.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>CS 754 : Advanced Image Processing - Assignment 1</h1><!--introduction--><p>Karan Taneja - 15D070022</p><p>Sucheta Ravikanti- 1600401001</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">2 (c) Haar wavelet for barbara256 image</a></li><li><a href="#2">2 (c) Haar wavelet for barbara256 image: loop over patches</a></li><li><a href="#3">2 (c) Haar wavelet for barbara256 image: results</a></li><li><a href="#4">2 (c) Haar wavelet for goldhill image</a></li><li><a href="#5">2 (c) Haar wavelet for goldhill image: loop over patches</a></li><li><a href="#6">2 (d) Reconstruction of x from y and h: preparing x, y, h</a></li><li><a href="#7">2 (d) Reconstruction of x from y and h: A matrix and ISTA</a></li><li><a href="#8">2 (d) Reconstruction of x from y and h: results</a></li></ul></div><h2 id="1">2 (c) Haar wavelet for barbara256 image</h2><pre class="codeinput">clear;
+clc;
+
+sigma = sqrt(4);
+image = double(imread(<span class="string">'barbara256.png'</span>));
+noise = randn(size(image))*sigma;
+image = image + noise;
+[height, width] = size(image);
+
+imshow(image/max(image, [], <span class="string">'all'</span>));
+title(<span class="string">"Noisy image"</span>)
+hold <span class="string">off</span>
+
+sensing_matrix = randn(32, 64);
+haar_matrix = get_haar_matrix(8);
+A_matrix = sensing_matrix * haar_matrix';
+
+patch_size = 8; patch_stride = patch_size;
+padded_height = height+2*patch_stride;
+padded_width = width+2*patch_stride;
+alpha = eigs(A_matrix' * A_matrix, 1) * 2;
+lambda = 1;
+epsilon = 1e-2;
+
+padded_image = zeros(padded_height, padded_width);
+padded_image(patch_stride+1:end-patch_stride, <span class="keyword">...</span>
+    patch_stride+1:end-patch_stride) = image;
+</pre><img vspace="5" hspace="5" src="main2_01.png" alt=""> <h2 id="2">2 (c) Haar wavelet for barbara256 image: loop over patches</h2><pre class="codeinput">padded_image_recon = zeros(padded_height, padded_width);
+
+tic
+<span class="keyword">for</span> phid = 1:patch_stride:padded_height-patch_stride
+    <span class="keyword">for</span> pwid = 1:patch_stride:padded_width-patch_stride
+<span class="comment">%         sprintf("x = %d, y = %d", phid, pwid)</span>
+        current_xi = padded_image(phid:phid+patch_size-1, <span class="keyword">...</span>
+            pwid:pwid+patch_size-1);
+        current_xi = current_xi(:);
+        current_yi = sensing_matrix * current_xi;
+
+        current_theta_i_recon = ista_reconstruction(current_yi, <span class="keyword">...</span>
+            A_matrix, alpha, lambda, epsilon);
+        current_xi_recon = (haar_matrix') * current_theta_i_recon;
+        current_xi_recon = reshape(current_xi_recon, patch_size, <span class="keyword">...</span>
+            patch_size);
+<span class="comment">%         curr_rrmse = norm(current_xi(:)-current_xi_recon(:)) / ...</span>
+<span class="comment">%             norm(current_xi(:))</span>
+        padded_image_recon(phid:phid+patch_size-1, <span class="keyword">...</span>
+            pwid:pwid+patch_size-1) = padded_image_recon(phid: <span class="keyword">...</span>
+            phid+patch_size-1, pwid:pwid+patch_size-1) + current_xi_recon;
+        fid = fopen(<span class="string">'log.txt'</span>, <span class="string">'a+'</span>);
+        fprintf(fid, <span class="string">'x = %d y = %d \n'</span>, phid, pwid);
+        fclose(fid);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+toc
+</pre><pre class="codeoutput">Elapsed time is 16.840579 seconds.
+</pre><h2 id="3">2 (c) Haar wavelet for barbara256 image: results</h2><pre class="codeinput">padded_image_recon = padded_image_recon ./ 4;
+image_recon = padded_image_recon(patch_stride+1:end-patch_stride, <span class="keyword">...</span>
+    patch_stride+1:end-patch_stride);
+
+imshow(image_recon/max(image_recon, [], <span class="string">'all'</span>));
+title(<span class="string">"Reconstructed Image"</span>)
+hold <span class="string">off</span>
+
+rrmse = norm(image(:)-image_recon(:)) / norm(image(:));
+rrmse
+</pre><pre class="codeoutput">
+rrmse =
+
+    0.8874
+
+</pre><img vspace="5" hspace="5" src="main2_02.png" alt=""> <h2 id="4">2 (c) Haar wavelet for goldhill image</h2><pre class="codeinput">clear;
+clc;
+
+sigma = sqrt(4);
+image = double(imread(<span class="string">'goldhill.png'</span>));
+image = image(1:256, 1:256);
+noise = randn(size(image))*sigma;
+image = image + noise;
+[height, width] = size(image);
+
+imshow(image/max(image, [], <span class="string">'all'</span>));
+title(<span class="string">"Noisy image"</span>)
+hold <span class="string">off</span>
+
+sensing_matrix = randn(32, 64);
+haar_matrix = get_haar_matrix(8);
+A_matrix = sensing_matrix * haar_matrix';
+
+patch_size = 8; patch_stride = patch_size;
+padded_height = height+2*patch_stride;
+padded_width = width+2*patch_stride;
+alpha = eigs(A_matrix' * A_matrix, 1) * 1.05;
+lambda = 1;
+epsilon = 1e-2;
+
+padded_image = zeros(padded_height, padded_width);
+padded_image(patch_stride+1:end-patch_stride, <span class="keyword">...</span>
+    patch_stride+1:end-patch_stride) = image;
+</pre><img vspace="5" hspace="5" src="main2_03.png" alt=""> <h2 id="5">2 (c) Haar wavelet for goldhill image: loop over patches</h2><pre class="codeinput">padded_image_recon = zeros(padded_height, padded_width);
+
+tic
+<span class="keyword">for</span> phid = 1:patch_stride:padded_height-patch_stride
+    <span class="keyword">for</span> pwid = 1:patch_stride:padded_width-patch_stride
+<span class="comment">%         sprintf("x = %d, y = %d", phid, pwid)</span>
+        current_xi = padded_image(phid:phid+patch_size-1, <span class="keyword">...</span>
+            pwid:pwid+patch_size-1);
+        current_xi = current_xi(:);
+        current_yi = sensing_matrix * current_xi;
+
+        current_theta_i_recon = ista_reconstruction(current_yi, <span class="keyword">...</span>
+            A_matrix, alpha, lambda, epsilon);
+        current_xi_recon = get_idwt2(current_theta_i_recon);
+        current_xi_recon = reshape(current_xi_recon, patch_size, <span class="keyword">...</span>
+            patch_size);
+<span class="comment">%         curr_rrmse = norm(current_xi(:)-current_xi_recon(:)) / ...</span>
+<span class="comment">%             norm(current_xi(:))</span>
+        padded_image_recon(phid:phid+patch_size-1, <span class="keyword">...</span>
+            pwid:pwid+patch_size-1) = padded_image_recon(phid: <span class="keyword">...</span>
+            phid+patch_size-1, pwid:pwid+patch_size-1) + current_xi_recon;
+        fid = fopen(<span class="string">'log.txt'</span>, <span class="string">'a+'</span>);
+        fprintf(fid, <span class="string">'x = %d y = %d \n'</span>, phid, pwid);
+        fclose(fid);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+toc
+
+padded_image_recon = padded_image_recon ./ 4;
+image_recon = padded_image_recon(patch_stride+1:end-patch_stride, <span class="keyword">...</span>
+    patch_stride+1:end-patch_stride);
+
+imshow(image_recon/max(image_recon, [], <span class="string">'all'</span>));
+title(<span class="string">"Reconstructed Image"</span>)
+hold <span class="string">off</span>
+
+rrmse = norm(image(:)-image_recon(:)) / norm(image(:));
+rrmse
+</pre><pre class="codeoutput">Elapsed time is 21.142274 seconds.
+
+rrmse =
+
+    0.8863
+
+</pre><img vspace="5" hspace="5" src="main2_04.png" alt=""> <h2 id="6">2 (d) Reconstruction of x from y and h: preparing x, y, h</h2><pre class="codeinput">clear;
+clc;
+
+x = zeros(100, 1);
+non_zero_values = rand(10, 1)*2;
+non_zero_indices = randsample(100, 10);
+x(non_zero_indices, 1) = non_zero_values;
+
+h = [1 2 3 4 3 2 1]';
+h = h ./ 16;
+h_len = size(h, 1);
+
+noise = randn(100, 1) .* norm(x)/10 .* 0.05;
+
+y = conv(h, x);
+y = y(1:100);
+y = y + noise;
+</pre><h2 id="7">2 (d) Reconstruction of x from y and h: A matrix and ISTA</h2><pre class="codeinput">sensing_matrix = zeros(100, 100);
+<span class="keyword">for</span> i = 1:100
+    max_index = min(i+h_len-1, 100);
+    sensing_matrix(i:max_index,i) = h(1:max_index-i+1,1);
+<span class="keyword">end</span>
+sparsity_transform = eye(100); <span class="comment">% just an identity matrix</span>
+
+A_matrix = sensing_matrix*sparsity_transform';
+alpha = eigs(A_matrix' * A_matrix, 1)*2;
+lambda = 1e-2;
+
+theta_recon = ista_reconstruction(y, A_matrix, alpha, lambda, 1e-5);
+x_recon = sparsity_transform' * theta_recon;
+</pre><h2 id="8">2 (d) Reconstruction of x from y and h: results</h2><pre class="codeinput">rrmse = norm(x - x_recon) / norm(x)
+
+figure
+
+subplot(3, 1, 1)
+stem(x)
+title(<span class="string">"X"</span>)
+
+subplot(3, 1, 2)
+stem(y)
+title(<span class="string">"Y"</span>)
+
+subplot(3, 1, 3)
+stem(x_recon)
+title(<span class="string">"X Reconstructed"</span>)
+</pre><pre class="codeoutput">
+rrmse =
+
+    0.1628
+
+</pre><img vspace="5" hspace="5" src="main2_05.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% CS 754 : Advanced Image Processing - Assignment 1
+% Karan Taneja - 15D070022
+%
+% Sucheta Ravikanti- 1600401001
+%
+
+%% 2 (c) Haar wavelet for barbara256 image
+
+clear;
+clc;
+
+sigma = sqrt(4);
+image = double(imread('barbara256.png'));
+noise = randn(size(image))*sigma;
+image = image + noise;
+[height, width] = size(image);
+
+imshow(image/max(image, [], 'all'));
+title("Noisy image")
+hold off
+
+sensing_matrix = randn(32, 64);
+haar_matrix = get_haar_matrix(8);
+A_matrix = sensing_matrix * haar_matrix';
+
+patch_size = 8; patch_stride = patch_size;
+padded_height = height+2*patch_stride;
+padded_width = width+2*patch_stride;
+alpha = eigs(A_matrix' * A_matrix, 1) * 2; 
+lambda = 1; 
+epsilon = 1e-2;
+
+padded_image = zeros(padded_height, padded_width);
+padded_image(patch_stride+1:end-patch_stride, ...
+    patch_stride+1:end-patch_stride) = image;
+
+%% 2 (c) Haar wavelet for barbara256 image: loop over patches
+
+padded_image_recon = zeros(padded_height, padded_width);
+
+tic
+for phid = 1:patch_stride:padded_height-patch_stride
+    for pwid = 1:patch_stride:padded_width-patch_stride
+%         sprintf("x = %d, y = %d", phid, pwid)
+        current_xi = padded_image(phid:phid+patch_size-1, ...
+            pwid:pwid+patch_size-1);
+        current_xi = current_xi(:);
+        current_yi = sensing_matrix * current_xi;
+        
+        current_theta_i_recon = ista_reconstruction(current_yi, ...
+            A_matrix, alpha, lambda, epsilon);
+        current_xi_recon = (haar_matrix') * current_theta_i_recon;
+        current_xi_recon = reshape(current_xi_recon, patch_size, ...
+            patch_size);
+%         curr_rrmse = norm(current_xi(:)-current_xi_recon(:)) / ...
+%             norm(current_xi(:))
+        padded_image_recon(phid:phid+patch_size-1, ...
+            pwid:pwid+patch_size-1) = padded_image_recon(phid: ...
+            phid+patch_size-1, pwid:pwid+patch_size-1) + current_xi_recon;
+        fid = fopen('log.txt', 'a+');
+        fprintf(fid, 'x = %d y = %d \n', phid, pwid);
+        fclose(fid);
+    end
+end
+toc
+
+%% 2 (c) Haar wavelet for barbara256 image: results
+
+padded_image_recon = padded_image_recon ./ 4;
+image_recon = padded_image_recon(patch_stride+1:end-patch_stride, ...
+    patch_stride+1:end-patch_stride);
+
+imshow(image_recon/max(image_recon, [], 'all'));
+title("Reconstructed Image")
+hold off
+
+rrmse = norm(image(:)-image_recon(:)) / norm(image(:));
+rrmse
+
+
+%% 2 (c) Haar wavelet for goldhill image
+
+clear;
+clc;
+
+sigma = sqrt(4);
+image = double(imread('goldhill.png'));
+image = image(1:256, 1:256);
+noise = randn(size(image))*sigma;
+image = image + noise;
+[height, width] = size(image);
+
+imshow(image/max(image, [], 'all'));
+title("Noisy image")
+hold off
+
+sensing_matrix = randn(32, 64);
+haar_matrix = get_haar_matrix(8);
+A_matrix = sensing_matrix * haar_matrix';
+
+patch_size = 8; patch_stride = patch_size;
+padded_height = height+2*patch_stride;
+padded_width = width+2*patch_stride;
+alpha = eigs(A_matrix' * A_matrix, 1) * 1.05; 
+lambda = 1; 
+epsilon = 1e-2;
+
+padded_image = zeros(padded_height, padded_width);
+padded_image(patch_stride+1:end-patch_stride, ...
+    patch_stride+1:end-patch_stride) = image;
+
+%% 2 (c) Haar wavelet for goldhill image: loop over patches
+
+padded_image_recon = zeros(padded_height, padded_width);
+
+tic
+for phid = 1:patch_stride:padded_height-patch_stride
+    for pwid = 1:patch_stride:padded_width-patch_stride
+%         sprintf("x = %d, y = %d", phid, pwid)
+        current_xi = padded_image(phid:phid+patch_size-1, ...
+            pwid:pwid+patch_size-1);
+        current_xi = current_xi(:);
+        current_yi = sensing_matrix * current_xi;
+        
+        current_theta_i_recon = ista_reconstruction(current_yi, ...
+            A_matrix, alpha, lambda, epsilon);
+        current_xi_recon = get_idwt2(current_theta_i_recon);
+        current_xi_recon = reshape(current_xi_recon, patch_size, ...
+            patch_size);
+%         curr_rrmse = norm(current_xi(:)-current_xi_recon(:)) / ...
+%             norm(current_xi(:))
+        padded_image_recon(phid:phid+patch_size-1, ...
+            pwid:pwid+patch_size-1) = padded_image_recon(phid: ...
+            phid+patch_size-1, pwid:pwid+patch_size-1) + current_xi_recon;
+        fid = fopen('log.txt', 'a+');
+        fprintf(fid, 'x = %d y = %d \n', phid, pwid);
+        fclose(fid);
+    end
+end
+toc
+
+padded_image_recon = padded_image_recon ./ 4;
+image_recon = padded_image_recon(patch_stride+1:end-patch_stride, ...
+    patch_stride+1:end-patch_stride);
+
+imshow(image_recon/max(image_recon, [], 'all'));
+title("Reconstructed Image")
+hold off
+
+rrmse = norm(image(:)-image_recon(:)) / norm(image(:));
+rrmse
+
+%% 2 (d) Reconstruction of x from y and h: preparing x, y, h
+
+clear; 
+clc;
+
+x = zeros(100, 1);
+non_zero_values = rand(10, 1)*2;
+non_zero_indices = randsample(100, 10);
+x(non_zero_indices, 1) = non_zero_values;
+
+h = [1 2 3 4 3 2 1]';
+h = h ./ 16;
+h_len = size(h, 1);
+
+noise = randn(100, 1) .* norm(x)/10 .* 0.05;
+
+y = conv(h, x);
+y = y(1:100);
+y = y + noise;
+
+%% 2 (d) Reconstruction of x from y and h: A matrix and ISTA
+
+sensing_matrix = zeros(100, 100);
+for i = 1:100
+    max_index = min(i+h_len-1, 100);
+    sensing_matrix(i:max_index,i) = h(1:max_index-i+1,1);
+end
+sparsity_transform = eye(100); % just an identity matrix
+
+A_matrix = sensing_matrix*sparsity_transform';
+alpha = eigs(A_matrix' * A_matrix, 1)*2;
+lambda = 1e-2;
+
+theta_recon = ista_reconstruction(y, A_matrix, alpha, lambda, 1e-5);
+x_recon = sparsity_transform' * theta_recon;
+
+%% 2 (d) Reconstruction of x from y and h: results
+
+rrmse = norm(x - x_recon) / norm(x)
+
+figure
+
+subplot(3, 1, 1)
+stem(x)
+title("X")
+
+subplot(3, 1, 2) 
+stem(y)
+title("Y")
+
+subplot(3, 1, 3)
+stem(x_recon)
+title("X Reconstructed")
+##### SOURCE END #####
+--></body></html>
