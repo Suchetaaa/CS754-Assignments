@@ -1,0 +1,637 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>main</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-03-12"><meta name="DC.source" content="main.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Loading image and taking radon transform</a></li><li><a href="#3">(a) Filtered Back-projection</a></li><li><a href="#4">(b) Using non-coupled compressive sensing - 2D DCT basis</a></li><li><a href="#5">(b) Using non-coupled compressive sensing - 2D Haar Wavelet basis</a></li><li><a href="#6">(b) Repeating above for second slice</a></li><li><a href="#7">(c) Loading image and taking radon transform for 2 slice coupled recon.</a></li><li><a href="#8">(c) Using coupled compressive sensing - 2D DCT basis - 2 slices</a></li><li><a href="#9">(c) Using coupled compressive sensing - 2D Haar Wavelet basis - 2 slices</a></li><li><a href="#10">(c) Loading image and taking radon transform for 3 slice coupled recon.</a></li><li><a href="#11">(c) Using coupled compressive sensing - 2D DCT basis - 3 slices</a></li><li><a href="#12">(c) Using coupled compressive sensing - 2D Haar Wavelet basis - 3 slices</a></li></ul></div><pre class="codeinput">clc;
+clear;
+addpath(genpath(<span class="string">'l1_ls_matlab'</span>));
+</pre><h2 id="2">Loading image and taking radon transform</h2><pre class="codeinput">num_angles = 18;
+image_size = 218;
+brain_slice = get_slice(51);
+random_angles = randsample(180, num_angles) - 1;
+projections = radon(brain_slice, random_angles);
+</pre><h2 id="3">(a) Filtered Back-projection</h2><pre class="codeinput">brain_slice_recon_iradon = iradon(projections, random_angles, <span class="keyword">...</span>
+    <span class="string">'linear'</span>, <span class="string">'Ram-Lak'</span>, 1, image_size);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon_iradon).^2, <span class="string">'all'</span>)) / <span class="keyword">...</span>
+    sqrt(sum((brain_slice).^2, <span class="string">'all'</span>))
+
+figure
+subplot(1, 2, 1)
+imshow(brain_slice)
+title(<span class="string">"Orig. 1"</span>)
+subplot(1, 2, 2)
+imshow(brain_slice_recon_iradon)
+title(<span class="string">"Recon. 1 (FBP)"</span>)
+</pre><pre class="codeoutput">
+rrmse =
+
+    0.5640
+
+</pre><img vspace="5" hspace="5" src="main_01.png" alt=""> <h2 id="4">(b) Using non-coupled compressive sensing - 2D DCT basis</h2><pre class="codeinput">brain_slice_recon = reconstruct_single_slice(@dct2, @idct2, image_size, <span class="keyword">...</span>
+    random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, <span class="string">'all'</span>)) / <span class="keyword">...</span>
+    sqrt(sum((brain_slice).^2, <span class="string">'all'</span>))
+
+figure
+subplot(1, 2, 1)
+imshow(brain_slice)
+title(<span class="string">"Orig. 1"</span>)
+subplot(1, 2, 2)
+imshow(brain_slice_recon)
+title(<span class="string">"Recon. 1 (DCT)"</span>)
+</pre><pre class="codeoutput">
+status =
+
+    'Solved'
+
+
+rrmse =
+
+    0.2809
+
+</pre><img vspace="5" hspace="5" src="main_02.png" alt=""> <h2 id="5">(b) Using non-coupled compressive sensing - 2D Haar Wavelet basis</h2><pre class="codeinput">brain_slice_recon = reconstruct_single_slice(@haart2_custom, <span class="keyword">...</span>
+    @ihaart2_custom, image_size, random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, <span class="string">'all'</span>)) / <span class="keyword">...</span>
+    sqrt(sum((brain_slice).^2, <span class="string">'all'</span>))
+
+figure
+subplot(1, 2, 1)
+imshow(brain_slice)
+title(<span class="string">"Orig. 1"</span>)
+subplot(1, 2, 2)
+imshow(brain_slice_recon)
+title(<span class="string">"Recon. 1 (Haar)"</span>)
+</pre><pre class="codeoutput">
+status =
+
+    'Solved'
+
+
+rrmse =
+
+    0.2830
+
+</pre><img vspace="5" hspace="5" src="main_03.png" alt=""> <h2 id="6">(b) Repeating above for second slice</h2><pre class="codeinput">clc;
+clear;
+
+num_angles = 18;
+image_size = 218;
+brain_slice = get_slice(51);
+random_angles = randsample(180, num_angles) - 1;
+projections = radon(brain_slice, random_angles);
+
+brain_slice_recon_iradon = iradon(projections, random_angles, <span class="keyword">...</span>
+    <span class="string">'linear'</span>, <span class="string">'Ram-Lak'</span>, 1, image_size);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon_iradon).^2, <span class="string">'all'</span>)) / <span class="keyword">...</span>
+    sqrt(sum((brain_slice).^2, <span class="string">'all'</span>))
+
+figure
+subplot(1, 2, 1)
+imshow(brain_slice)
+title(<span class="string">"Orig. 2"</span>)
+subplot(1, 2, 2)
+imshow(brain_slice_recon_iradon)
+title(<span class="string">"Recon. 2 (FBP)"</span>)
+
+brain_slice_recon = reconstruct_single_slice(@dct2, @idct2, image_size, <span class="keyword">...</span>
+    random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, <span class="string">'all'</span>)) / <span class="keyword">...</span>
+    sqrt(sum((brain_slice).^2, <span class="string">'all'</span>))
+
+figure
+subplot(1, 2, 1)
+imshow(brain_slice)
+title(<span class="string">"Orig. 2"</span>)
+subplot(1, 2, 2)
+imshow(brain_slice_recon)
+title(<span class="string">"Recon. 2 (DCT)"</span>)
+
+brain_slice_recon = reconstruct_single_slice(@haart2_custom, <span class="keyword">...</span>
+    @ihaart2_custom, image_size, random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, <span class="string">'all'</span>)) / <span class="keyword">...</span>
+    sqrt(sum((brain_slice).^2, <span class="string">'all'</span>))
+
+figure
+subplot(1, 2, 1)
+imshow(brain_slice)
+title(<span class="string">"Orig. 2"</span>)
+subplot(1, 2, 2)
+imshow(brain_slice_recon)
+title(<span class="string">"Recon. 2 (Haar)"</span>)
+</pre><pre class="codeoutput">
+rrmse =
+
+    0.5605
+
+
+status =
+
+    'Solved'
+
+
+rrmse =
+
+    0.3123
+
+
+status =
+
+    'Solved'
+
+
+rrmse =
+
+    0.2997
+
+</pre><img vspace="5" hspace="5" src="main_04.png" alt=""> <img vspace="5" hspace="5" src="main_05.png" alt=""> <img vspace="5" hspace="5" src="main_06.png" alt=""> <h2 id="7">(c) Loading image and taking radon transform for 2 slice coupled recon.</h2><pre class="codeinput">clc;
+clear;
+
+num_angles = 18;
+image_size = 218;
+
+brain_slice(:,:,1) = get_slice(51);
+brain_slice(:,:,2) = get_slice(52);
+
+random_angles(:,:,1) = randsample(180, num_angles) - 1;
+random_angles(:,:,2) = randsample(180, num_angles) - 1;
+
+projections(:,:,1) = radon(brain_slice(:,:,1), random_angles(:,:,1));
+projections(:,:,2) = radon(brain_slice(:,:,2), random_angles(:,:,2));
+
+projection_size = size(projections, 1);
+</pre><h2 id="8">(c) Using coupled compressive sensing - 2D DCT basis - 2 slices</h2><pre class="codeinput">brain_slice_recon = reconstruct_two_slices(@dct2, @idct2, image_size, <span class="keyword">...</span>
+    random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, <span class="string">'all'</span>)) / <span class="keyword">...</span>
+    sqrt(sum((brain_slice).^2, <span class="string">'all'</span>))
+
+figure
+subplot(2, 2, 1)
+imshow(squeeze(brain_slice(:,:,1)))
+title(<span class="string">"Orig. 1 "</span>)
+subplot(2, 2, 2)
+imshow(squeeze(brain_slice(:,:,2)))
+title(<span class="string">"Orig. 2 "</span>)
+subplot(2, 2, 3)
+imshow(squeeze(brain_slice_recon(:,:,1)))
+title(<span class="string">"Recon. 1 (DCT)"</span>)
+subplot(2, 2, 4)
+imshow(squeeze(brain_slice_recon(:,:,2)))
+title(<span class="string">"Recon. 2 (DCT)"</span>)
+</pre><pre class="codeoutput">
+status =
+
+    'Solved'
+
+
+rrmse =
+
+    0.2207
+
+</pre><img vspace="5" hspace="5" src="main_07.png" alt=""> <h2 id="9">(c) Using coupled compressive sensing - 2D Haar Wavelet basis - 2 slices</h2><pre class="codeinput">brain_slice_recon = reconstruct_two_slices(@haart2_custom, <span class="keyword">...</span>
+    @ihaart2_custom, image_size, random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, <span class="string">'all'</span>)) / <span class="keyword">...</span>
+    sqrt(sum((brain_slice).^2, <span class="string">'all'</span>))
+
+figure
+subplot(2, 2, 1)
+imshow(squeeze(brain_slice(:,:,1)))
+title(<span class="string">"Orig. 1 "</span>)
+subplot(2, 2, 2)
+imshow(squeeze(brain_slice(:,:,2)))
+title(<span class="string">"Orig. 2 "</span>)
+subplot(2, 2, 3)
+imshow(squeeze(brain_slice_recon(:,:,1)))
+title(<span class="string">"Recon. 1 (Haar)"</span>)
+subplot(2, 2, 4)
+imshow(squeeze(brain_slice_recon(:,:,2)))
+title(<span class="string">"Recon. 2 (Haar)"</span>)
+</pre><pre class="codeoutput">
+status =
+
+    'Solved'
+
+
+rrmse =
+
+    0.2271
+
+</pre><img vspace="5" hspace="5" src="main_08.png" alt=""> <h2 id="10">(c) Loading image and taking radon transform for 3 slice coupled recon.</h2><pre class="codeinput">clc;
+clear;
+
+num_angles = 18;
+image_size = 218;
+
+brain_slice(:,:,1) = get_slice(51);
+brain_slice(:,:,2) = get_slice(52);
+brain_slice(:,:,3) = get_slice(53);
+
+random_angles(:,:,1) = randsample(180, num_angles) - 1;
+random_angles(:,:,2) = randsample(180, num_angles) - 1;
+random_angles(:,:,3) = randsample(180, num_angles) - 1;
+
+projections(:,:,1) = radon(brain_slice(:,:,1), random_angles(:,:,1));
+projections(:,:,2) = radon(brain_slice(:,:,2), random_angles(:,:,2));
+projections(:,:,3) = radon(brain_slice(:,:,3), random_angles(:,:,3));
+
+projection_size = size(projections, 1);
+</pre><h2 id="11">(c) Using coupled compressive sensing - 2D DCT basis - 3 slices</h2><pre class="codeinput">brain_slice_recon = reconstruct_three_slices(@dct2, @idct2, image_size, <span class="keyword">...</span>
+    random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, <span class="string">'all'</span>)) / <span class="keyword">...</span>
+    sqrt(sum((brain_slice).^2, <span class="string">'all'</span>))
+
+figure
+subplot(2, 3, 1)
+imshow(squeeze(brain_slice(:,:,1)))
+title(<span class="string">"Orig. 1 "</span>)
+subplot(2, 3, 2)
+imshow(squeeze(brain_slice(:,:,2)))
+title(<span class="string">"Orig. 2 "</span>)
+subplot(2, 3, 3)
+imshow(squeeze(brain_slice(:,:,3)))
+title(<span class="string">"Orig. 3 "</span>)
+subplot(2, 3, 4)
+imshow(squeeze(brain_slice_recon(:,:,1)))
+title(<span class="string">"Recon. 1 (DCT)"</span>)
+subplot(2, 3, 5)
+imshow(squeeze(brain_slice_recon(:,:,2)))
+title(<span class="string">"Recon. 2 (DCT)"</span>)
+subplot(2, 3, 6)
+imshow(squeeze(brain_slice_recon(:,:,3)))
+title(<span class="string">"Recon. 3 (DCT)"</span>)
+</pre><pre class="codeoutput">
+status =
+
+    'Solved'
+
+
+rrmse =
+
+    0.1838
+
+</pre><img vspace="5" hspace="5" src="main_09.png" alt=""> <h2 id="12">(c) Using coupled compressive sensing - 2D Haar Wavelet basis - 3 slices</h2><pre class="codeinput">brain_slice_recon = reconstruct_three_slices(@haart2_custom, <span class="keyword">...</span>
+    @ihaart2_custom, image_size, random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, <span class="string">'all'</span>)) / <span class="keyword">...</span>
+    sqrt(sum((brain_slice).^2, <span class="string">'all'</span>))
+
+figure
+subplot(2, 3, 1)
+imshow(squeeze(brain_slice(:,:,1)))
+title(<span class="string">"Orig. 1 "</span>)
+subplot(2, 3, 2)
+imshow(squeeze(brain_slice(:,:,2)))
+title(<span class="string">"Orig. 2 "</span>)
+subplot(2, 3, 3)
+imshow(squeeze(brain_slice(:,:,3)))
+title(<span class="string">"Orig. 3 "</span>)
+subplot(2, 3, 4)
+imshow(squeeze(brain_slice_recon(:,:,1)))
+title(<span class="string">"Recon. 1 (DCT)"</span>)
+subplot(2, 3, 5)
+imshow(squeeze(brain_slice_recon(:,:,2)))
+title(<span class="string">"Recon. 2 (Haar)"</span>)
+subplot(2, 3, 6)
+imshow(squeeze(brain_slice_recon(:,:,3)))
+title(<span class="string">"Recon. 3 (Haar)"</span>)
+</pre><pre class="codeoutput">
+status =
+
+    'Solved'
+
+
+rrmse =
+
+    0.1837
+
+</pre><img vspace="5" hspace="5" src="main_10.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+clc;
+clear;
+addpath(genpath('l1_ls_matlab'));
+
+%% Loading image and taking radon transform
+
+num_angles = 18;
+image_size = 218;
+brain_slice = get_slice(51);
+random_angles = randsample(180, num_angles) - 1;
+projections = radon(brain_slice, random_angles);
+
+%% (a) Filtered Back-projection
+
+brain_slice_recon_iradon = iradon(projections, random_angles, ...
+    'linear', 'Ram-Lak', 1, image_size);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon_iradon).^2, 'all')) / ...
+    sqrt(sum((brain_slice).^2, 'all'))
+
+figure
+subplot(1, 2, 1)
+imshow(brain_slice)
+title("Orig. 1")
+subplot(1, 2, 2)
+imshow(brain_slice_recon_iradon)
+title("Recon. 1 (FBP)")
+
+%% (b) Using non-coupled compressive sensing - 2D DCT basis
+
+brain_slice_recon = reconstruct_single_slice(@dct2, @idct2, image_size, ...
+    random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, 'all')) / ...
+    sqrt(sum((brain_slice).^2, 'all'))
+
+figure
+subplot(1, 2, 1)
+imshow(brain_slice)
+title("Orig. 1")
+subplot(1, 2, 2)
+imshow(brain_slice_recon)
+title("Recon. 1 (DCT)")
+
+%% (b) Using non-coupled compressive sensing - 2D Haar Wavelet basis
+
+brain_slice_recon = reconstruct_single_slice(@haart2_custom, ...
+    @ihaart2_custom, image_size, random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, 'all')) / ...
+    sqrt(sum((brain_slice).^2, 'all'))
+
+figure
+subplot(1, 2, 1)
+imshow(brain_slice)
+title("Orig. 1")
+subplot(1, 2, 2)
+imshow(brain_slice_recon)
+title("Recon. 1 (Haar)")
+
+%% (b) Repeating above for second slice
+
+clc;
+clear;
+
+num_angles = 18;
+image_size = 218;
+brain_slice = get_slice(51);
+random_angles = randsample(180, num_angles) - 1;
+projections = radon(brain_slice, random_angles);
+
+brain_slice_recon_iradon = iradon(projections, random_angles, ...
+    'linear', 'Ram-Lak', 1, image_size);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon_iradon).^2, 'all')) / ...
+    sqrt(sum((brain_slice).^2, 'all'))
+
+figure
+subplot(1, 2, 1)
+imshow(brain_slice)
+title("Orig. 2")
+subplot(1, 2, 2)
+imshow(brain_slice_recon_iradon)
+title("Recon. 2 (FBP)")
+
+brain_slice_recon = reconstruct_single_slice(@dct2, @idct2, image_size, ...
+    random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, 'all')) / ...
+    sqrt(sum((brain_slice).^2, 'all'))
+
+figure
+subplot(1, 2, 1)
+imshow(brain_slice)
+title("Orig. 2")
+subplot(1, 2, 2)
+imshow(brain_slice_recon)
+title("Recon. 2 (DCT)")
+
+brain_slice_recon = reconstruct_single_slice(@haart2_custom, ...
+    @ihaart2_custom, image_size, random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, 'all')) / ...
+    sqrt(sum((brain_slice).^2, 'all'))
+
+figure
+subplot(1, 2, 1)
+imshow(brain_slice)
+title("Orig. 2")
+subplot(1, 2, 2)
+imshow(brain_slice_recon)
+title("Recon. 2 (Haar)")
+
+
+%% (c) Loading image and taking radon transform for 2 slice coupled recon.
+
+clc;
+clear;
+
+num_angles = 18;
+image_size = 218;
+
+brain_slice(:,:,1) = get_slice(51);
+brain_slice(:,:,2) = get_slice(52);
+
+random_angles(:,:,1) = randsample(180, num_angles) - 1;
+random_angles(:,:,2) = randsample(180, num_angles) - 1;
+
+projections(:,:,1) = radon(brain_slice(:,:,1), random_angles(:,:,1));
+projections(:,:,2) = radon(brain_slice(:,:,2), random_angles(:,:,2));
+
+projection_size = size(projections, 1);
+
+%% (c) Using coupled compressive sensing - 2D DCT basis - 2 slices
+
+brain_slice_recon = reconstruct_two_slices(@dct2, @idct2, image_size, ...
+    random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, 'all')) / ...
+    sqrt(sum((brain_slice).^2, 'all'))
+
+figure
+subplot(2, 2, 1)
+imshow(squeeze(brain_slice(:,:,1)))
+title("Orig. 1 ")
+subplot(2, 2, 2)
+imshow(squeeze(brain_slice(:,:,2)))
+title("Orig. 2 ")
+subplot(2, 2, 3)
+imshow(squeeze(brain_slice_recon(:,:,1)))
+title("Recon. 1 (DCT)")
+subplot(2, 2, 4)
+imshow(squeeze(brain_slice_recon(:,:,2)))
+title("Recon. 2 (DCT)")
+
+%% (c) Using coupled compressive sensing - 2D Haar Wavelet basis - 2 slices
+
+brain_slice_recon = reconstruct_two_slices(@haart2_custom, ...
+    @ihaart2_custom, image_size, random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, 'all')) / ...
+    sqrt(sum((brain_slice).^2, 'all'))
+
+figure
+subplot(2, 2, 1)
+imshow(squeeze(brain_slice(:,:,1)))
+title("Orig. 1 ")
+subplot(2, 2, 2)
+imshow(squeeze(brain_slice(:,:,2)))
+title("Orig. 2 ")
+subplot(2, 2, 3)
+imshow(squeeze(brain_slice_recon(:,:,1)))
+title("Recon. 1 (Haar)")
+subplot(2, 2, 4)
+imshow(squeeze(brain_slice_recon(:,:,2)))
+title("Recon. 2 (Haar)")
+
+%% (c) Loading image and taking radon transform for 3 slice coupled recon.
+
+clc;
+clear;
+
+num_angles = 18;
+image_size = 218;
+
+brain_slice(:,:,1) = get_slice(51);
+brain_slice(:,:,2) = get_slice(52);
+brain_slice(:,:,3) = get_slice(53);
+
+random_angles(:,:,1) = randsample(180, num_angles) - 1;
+random_angles(:,:,2) = randsample(180, num_angles) - 1;
+random_angles(:,:,3) = randsample(180, num_angles) - 1;
+
+projections(:,:,1) = radon(brain_slice(:,:,1), random_angles(:,:,1));
+projections(:,:,2) = radon(brain_slice(:,:,2), random_angles(:,:,2));
+projections(:,:,3) = radon(brain_slice(:,:,3), random_angles(:,:,3));
+
+projection_size = size(projections, 1);
+
+%% (c) Using coupled compressive sensing - 2D DCT basis - 3 slices
+
+brain_slice_recon = reconstruct_three_slices(@dct2, @idct2, image_size, ...
+    random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, 'all')) / ...
+    sqrt(sum((brain_slice).^2, 'all'))
+
+figure
+subplot(2, 3, 1)
+imshow(squeeze(brain_slice(:,:,1)))
+title("Orig. 1 ")
+subplot(2, 3, 2)
+imshow(squeeze(brain_slice(:,:,2)))
+title("Orig. 2 ")
+subplot(2, 3, 3)
+imshow(squeeze(brain_slice(:,:,3)))
+title("Orig. 3 ")
+subplot(2, 3, 4)
+imshow(squeeze(brain_slice_recon(:,:,1)))
+title("Recon. 1 (DCT)")
+subplot(2, 3, 5)
+imshow(squeeze(brain_slice_recon(:,:,2)))
+title("Recon. 2 (DCT)")
+subplot(2, 3, 6)
+imshow(squeeze(brain_slice_recon(:,:,3)))
+title("Recon. 3 (DCT)")
+
+%% (c) Using coupled compressive sensing - 2D Haar Wavelet basis - 3 slices
+
+brain_slice_recon = reconstruct_three_slices(@haart2_custom, ...
+    @ihaart2_custom, image_size, random_angles, projections);
+
+rrmse = sqrt(sum((brain_slice - brain_slice_recon).^2, 'all')) / ...
+    sqrt(sum((brain_slice).^2, 'all'))
+
+figure
+subplot(2, 3, 1)
+imshow(squeeze(brain_slice(:,:,1)))
+title("Orig. 1 ")
+subplot(2, 3, 2)
+imshow(squeeze(brain_slice(:,:,2)))
+title("Orig. 2 ")
+subplot(2, 3, 3)
+imshow(squeeze(brain_slice(:,:,3)))
+title("Orig. 3 ")
+subplot(2, 3, 4)
+imshow(squeeze(brain_slice_recon(:,:,1)))
+title("Recon. 1 (DCT)")
+subplot(2, 3, 5)
+imshow(squeeze(brain_slice_recon(:,:,2)))
+title("Recon. 2 (Haar)")
+subplot(2, 3, 6)
+imshow(squeeze(brain_slice_recon(:,:,3)))
+title("Recon. 3 (Haar)")
+
+##### SOURCE END #####
+--></body></html>
