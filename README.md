@@ -1,1 +1,1 @@
-# CS754-Assignments
+# Advanced Image Prcoessing (CS754) Assignments
